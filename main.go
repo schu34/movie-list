@@ -8,13 +8,13 @@ import (
 )
 
 type movie struct {
-	title       string `json:"title"`
-	year        uint   `json:"year"`
-	reccomender string `json:"reccomender"`
-	imdbUrl     string `json:"imdbUrl"`
+	Title       string `json:"Title"`
+	Year        uint   `json:"Year"`
+	Reccomender string `json:"Reccomender"`
+	ImdbUrl     string `json:"ImdbUrl"`
 }
 
-var sample = movie{title: "star wars", year: 1979, reccomender: "dad", imdbUrl: "test"}
+var sample = movie{Title: "star wars", Year: 1979, Reccomender: "dad", ImdbUrl: "test"}
 
 func main() {
 	port := os.Getenv("PORT")
