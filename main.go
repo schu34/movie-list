@@ -22,7 +22,7 @@ func main() {
 	port := os.Getenv("PORT")
 	router := gin.Default()
 	router.GET("/hello", func(c *gin.Context) {
-		c.IndentedJSON(http.StatusOK, sample)
+		c.IndentedJSON(http.StatusOK, sample[0])
 	})
 
 	router.Run(":" + port)
