@@ -14,15 +14,13 @@ type movie struct {
 	imdbUrl     string `json:"imdbUrl"`
 }
 
-var sample = []movie{
-	{title: "star wars", year: 1979, reccomender: "dad", imdbUrl: "test"},
-}
+var sample = movie{title: "star wars", year: 1979, reccomender: "dad", imdbUrl: "test"}
 
 func main() {
 	port := os.Getenv("PORT")
 	router := gin.Default()
 	router.GET("/hello", func(c *gin.Context) {
-		c.IndentedJSON(http.StatusOK, sample[0])
+		c.IndentedJSON(http.StatusOK, sample)
 	})
 
 	router.Run(":" + port)
