@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 	"github.com/tabbed/pqtype"
@@ -42,6 +43,9 @@ func main() {
 		port = "8080"
 	}
 	router := gin.Default()
+
+	router.Use(static.Serve("/", static.LocalFile("./frontend/dist", true)))
+
 	router.GET("/movies", func(c *gin.Context) {
 		movies, err := queries.ListMovies(c)
 
@@ -102,5 +106,4 @@ func getStringFromBody(c *gin.Context, key string) sql.NullString {
 func getJSONFromBody(c *gin.Context, key string) pqtype.NullRawMessage {
 	value := json.RawMessage(c.PostForm("Tags"))
 	return pqtype.NullRawMessage{Valid: json.Valid((value)), RawMessage: value}
-
 }

@@ -11,13 +11,10 @@ import (
 )
 
 const createMovie = `-- name: CreateMovie :one
-
-insert into movies (title, year, imdb_url, reccomender, tags)
-VALUES ($1,
-									$2,
-									$3,
-									$4,
-									$5) RETURNING movieid, title, year, imdb_url, reccomender, tags
+INSERT INTO movies (title, year, imdb_url, reccomender, tags)
+  VALUES ($1, $2, $3, $4, $5)
+RETURNING
+  movieid, title, year, imdb_url, reccomender, tags
 `
 
 type CreateMovieParams struct {
@@ -49,11 +46,13 @@ func (q *Queries) CreateMovie(ctx context.Context, arg CreateMovieParams) (Movie
 }
 
 const getMovie = `-- name: GetMovie :one
-
-select movieid, title, year, imdb_url, reccomender, tags
-from movies
-where movieId = $1
-limit 1
+SELECT
+  movieid, title, year, imdb_url, reccomender, tags
+FROM
+  movies
+WHERE
+  movieId = $1
+LIMIT 1
 `
 
 func (q *Queries) GetMovie(ctx context.Context, movieid int32) (Movie, error) {
@@ -71,9 +70,10 @@ func (q *Queries) GetMovie(ctx context.Context, movieid int32) (Movie, error) {
 }
 
 const listMovies = `-- name: ListMovies :many
-
-select movieid, title, year, imdb_url, reccomender, tags
-from movies
+SELECT
+  movieid, title, year, imdb_url, reccomender, tags
+FROM
+  movies
 `
 
 func (q *Queries) ListMovies(ctx context.Context) ([]Movie, error) {
