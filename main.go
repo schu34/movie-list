@@ -44,7 +44,7 @@ func main() {
 	}
 	router := gin.Default()
 
-	router.Use(static.Serve("/", static.LocalFile("./frontend/dist", true)))
+	router.Use(static.Serve("/", static.LocalFile("./dist", true)))
 
 	router.GET("/movies", func(c *gin.Context) {
 		movies, err := queries.ListMovies(c)
