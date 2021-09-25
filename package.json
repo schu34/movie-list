@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "parcel build frontend/src/index.html"
+    "build": "parcel build frontend/src/index.html",
+    "postbuild":"tree"
   },
   "keywords": [],
   "author": "",
