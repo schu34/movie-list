@@ -15,4 +15,5 @@ type Movie struct {
 	ImdbUrl     sql.NullString
 	Reccomender sql.NullString
 	Tags        pqtype.NullRawMessage
+	IsTv        bool
 }

@@ -4,6 +4,7 @@ CREATE TABLE movies (
   year int,
   imdb_url text,
   reccomender text,
-  tags jsonb
+  tags jsonb,
+	is_tv BOOLEAN not null
 );
 

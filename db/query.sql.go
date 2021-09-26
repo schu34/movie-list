@@ -11,10 +11,10 @@ import (
 )
 
 const createMovie = `-- name: CreateMovie :one
-INSERT INTO movies (title, year, imdb_url, reccomender, tags)
-  VALUES ($1, $2, $3, $4, $5)
+INSERT INTO movies (title, year, imdb_url, reccomender, tags, is_tv)
+  VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING
-  movieid, title, year, imdb_url, reccomender, tags
+  movieid, title, year, imdb_url, reccomender, tags, is_tv
 `
 
 type CreateMovieParams struct {
@@ -23,6 +23,7 @@ type CreateMovieParams struct {
 	ImdbUrl     sql.NullString
 	Reccomender sql.NullString
 	Tags        pqtype.NullRawMessage
+	IsTv        bool
 }
 
 func (q *Queries) CreateMovie(ctx context.Context, arg CreateMovieParams) (Movie, error) {
@@ -32,6 +33,7 @@ func (q *Queries) CreateMovie(ctx context.Context, arg CreateMovieParams) (Movie
 		arg.ImdbUrl,
 		arg.Reccomender,
 		arg.Tags,
+		arg.IsTv,
 	)
 	var i Movie
 	err := row.Scan(
@@ -41,13 +43,14 @@ func (q *Queries) CreateMovie(ctx context.Context, arg CreateMovieParams) (Movie
 		&i.ImdbUrl,
 		&i.Reccomender,
 		&i.Tags,
+		&i.IsTv,
 	)
 	return i, err
 }
 
 const getMovie = `-- name: GetMovie :one
 SELECT
-  movieid, title, year, imdb_url, reccomender, tags
+  movieid, title, year, imdb_url, reccomender, tags, is_tv
 FROM
   movies
 WHERE
@@ -65,13 +68,14 @@ func (q *Queries) GetMovie(ctx context.Context, movieid int32) (Movie, error) {
 		&i.ImdbUrl,
 		&i.Reccomender,
 		&i.Tags,
+		&i.IsTv,
 	)
 	return i, err
 }
 
 const listMovies = `-- name: ListMovies :many
 SELECT
-  movieid, title, year, imdb_url, reccomender, tags
+  movieid, title, year, imdb_url, reccomender, tags, is_tv
 FROM
   movies
 `
@@ -92,6 +96,7 @@ func (q *Queries) ListMovies(ctx context.Context) ([]Movie, error) {
 			&i.ImdbUrl,
 			&i.Reccomender,
 			&i.Tags,
+			&i.IsTv,
 		); err != nil {
 			return nil, err
 		}

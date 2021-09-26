@@ -79,6 +79,7 @@ func main() {
 			Reccomender: getStringFromBody(c, "Reccomender"),
 			ImdbUrl:     getStringFromBody(c, "ImdbUrl"),
 			Tags:        getJSONFromBody(c, "Tags"),
+			IsTv:        getBoolFromBody(c, "IsTv"),
 		})
 
 		if err != nil {
@@ -87,6 +88,17 @@ func main() {
 		}
 
 		c.IndentedJSON(200, result)
+
+	})
+
+	router.GET("/search/:search", func(c *gin.Context) {
+		response, err := ImdbSearch(c.Param("search"))
+
+		if err != nil {
+			c.AbortWithError(500, err)
+		}
+
+		c.IndentedJSON(200, response)
 
 	})
 
@@ -106,4 +118,16 @@ func getStringFromBody(c *gin.Context, key string) sql.NullString {
 func getJSONFromBody(c *gin.Context, key string) pqtype.NullRawMessage {
 	value := json.RawMessage(c.PostForm("Tags"))
 	return pqtype.NullRawMessage{Valid: json.Valid((value)), RawMessage: value}
+}
+
+func getBoolFromBody(c *gin.Context, key string) bool {
+	value := c.PostForm("IsTv")
+	return value == "true"
+	// if value == "true" {
+	// 	return sql.NullBool{Valid: true, Bool: true}
+	// } else if value == "false" {
+	// 	return sql.NullBool{Valid: true, Bool: false}
+	// } else {
+	// 	return sql.NullBool{Valid: false}
+	// }
 }

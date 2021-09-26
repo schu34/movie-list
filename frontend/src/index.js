@@ -1,1 +1,2 @@
-alert("it's alive!")
+const x = ()=>"it's alive!!"
+alert(x())
