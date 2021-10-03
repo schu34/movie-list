@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
@@ -44,6 +45,12 @@ func main() {
 	}
 	router := gin.Default()
 
+	// config := cors.DefaultConfig()
+	// config.AllowOrigins = []string{"http://localhost:1234"}
+	// config.AllowMethods = []string{"POST"}
+
+	router.Use(cors.Default())
+
 	router.Use(static.Serve("/", static.LocalFile("./dist", true)))
 
 	router.GET("/movies", func(c *gin.Context) {
@@ -79,7 +86,7 @@ func main() {
 			Reccomender: getStringFromBody(c, "Reccomender"),
 			ImdbUrl:     getStringFromBody(c, "ImdbUrl"),
 			Tags:        getJSONFromBody(c, "Tags"),
-			IsTv:        getBoolFromBody(c, "IsTv"),
+			ContentType: getStringFromBody(c, "ContentType").String,
 		})
 
 		if err != nil {

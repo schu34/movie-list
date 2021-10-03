@@ -14,7 +14,7 @@ FROM
   movies;
 
 -- name: CreateMovie :one
-INSERT INTO movies (title, year, imdb_url, reccomender, tags, is_tv)
+INSERT INTO movies (title, year, imdb_url, reccomender, tags, content_type)
   VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING
   *;
