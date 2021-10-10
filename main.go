@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/contrib/static"
@@ -107,6 +108,13 @@ func main() {
 
 		c.IndentedJSON(200, response)
 
+	})
+
+	count := 0
+	router.GET("/hello", func(c *gin.Context) {
+		time.Sleep(2 * time.Second)
+		count++
+		c.IndentedJSON(200, "world "+strconv.Itoa(count))
 	})
 
 	router.Run(":" + port)
