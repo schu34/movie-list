@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+  "fmt"
 	"os"
 	"strconv"
 	"time"
@@ -114,6 +115,7 @@ func main() {
 	router.GET("/hello", func(c *gin.Context) {
 		time.Sleep(2 * time.Second)
 		count++
+    fmt.Printf("hello world endpoint hit")
 		c.IndentedJSON(200, "world "+strconv.Itoa(count))
 	})
 

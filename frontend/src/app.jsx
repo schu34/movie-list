@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import ReactDOM from "react-dom";
 import useSuggestion from "./useSuggestion";
 
@@ -8,6 +8,7 @@ const apiUrl = process.env.API_URL || "http://localhost:8080";
 
 const App = () => {
   const [title, setTitle, suggestions] = useSuggestion();
+  const [error, setError] = useState();
   console.log("render");
 
   const submitForm = async (e) => {
@@ -25,6 +26,7 @@ const App = () => {
       console.log(res);
     } catch (error) {
       console.log(error);
+      setError(error);
     }
   };
 
@@ -52,9 +54,13 @@ const App = () => {
             <input type="submit" value="submit" />
           </div>
           <div className="col-md-6 col-sm-12">
-            {suggestions.results.map((sug) => {
-              return <SuggestionResult {...sug} />;
-            })}
+            {suggestions.results.length ? (
+              suggestions.results.map((sug) => {
+                return <SuggestionResult {...sug} />;
+              })
+            ) : (
+              <div className={"text-danger"}>{error}</div>
+            )}
           </div>
         </div>
       </form>
