@@ -11,7 +11,6 @@ import (
 type Movie struct {
 	Movieid     int32
 	Title       string
-	Year        sql.NullInt32
 	ImdbUrl     sql.NullString
 	Reccomender sql.NullString
 	Tags        pqtype.NullRawMessage

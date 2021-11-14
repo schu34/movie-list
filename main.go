@@ -3,10 +3,8 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-  "fmt"
 	"os"
 	"strconv"
-	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/contrib/static"
@@ -20,7 +18,6 @@ import (
 
 type Movie struct {
 	Title       string   `json:"Title"`
-	Year        uint     `json:"Year"`
 	Reccomender string   `json:"Reccomender"`
 	ImdbUrl     string   `json:"ImdbUrl"`
 	Tags        []string `json:"Tags"`
@@ -84,7 +81,6 @@ func main() {
 
 		result, err := queries.CreateMovie(c, db.CreateMovieParams{
 			Title:       c.PostForm("Title"),
-			Year:        getInt32FromBody(c, "Year"),
 			Reccomender: getStringFromBody(c, "Reccomender"),
 			ImdbUrl:     getStringFromBody(c, "ImdbUrl"),
 			Tags:        getJSONFromBody(c, "Tags"),
@@ -113,18 +109,11 @@ func main() {
 
 	count := 0
 	router.GET("/hello", func(c *gin.Context) {
-		time.Sleep(2 * time.Second)
 		count++
-    fmt.Printf("hello world endpoint hit")
 		c.IndentedJSON(200, "world "+strconv.Itoa(count))
 	})
 
 	router.Run(":" + port)
-}
-
-func getInt32FromBody(c *gin.Context, key string) sql.NullInt32 {
-	value, err := strconv.Atoi(c.PostForm(key))
-	return sql.NullInt32{Valid: err == nil, Int32: int32(value)}
 }
 
 func getStringFromBody(c *gin.Context, key string) sql.NullString {
@@ -135,16 +124,4 @@ func getStringFromBody(c *gin.Context, key string) sql.NullString {
 func getJSONFromBody(c *gin.Context, key string) pqtype.NullRawMessage {
 	value := json.RawMessage(c.PostForm("Tags"))
 	return pqtype.NullRawMessage{Valid: json.Valid((value)), RawMessage: value}
-}
-
-func getBoolFromBody(c *gin.Context, key string) bool {
-	value := c.PostForm("IsTv")
-	return value == "true"
-	// if value == "true" {
-	// 	return sql.NullBool{Valid: true, Bool: true}
-	// } else if value == "false" {
-	// 	return sql.NullBool{Valid: true, Bool: false}
-	// } else {
-	// 	return sql.NullBool{Valid: false}
-	// }
 }

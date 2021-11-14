@@ -8,9 +8,11 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+
+	_ "github.com/joho/godotenv/autoload"
 )
 
-type result struct {
+type searchResult struct {
 	Id          string `json:"id"`
 	ResultType  string `json:"resultType"`
 	Image       string `json:"image"`
@@ -19,9 +21,9 @@ type result struct {
 }
 
 type SearchResponse struct {
-	SearchType string   `json:"searchType"`
-	Expression string   `json:"expression"`
-	Results    []result `json:"results"`
+	SearchType string         `json:"searchType"`
+	Expression string         `json:"expression"`
+	Results    []searchResult `json:"results"`
 }
 
 func getImdbApiKey() string {

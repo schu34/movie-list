@@ -11,15 +11,14 @@ import (
 )
 
 const createMovie = `-- name: CreateMovie :one
-INSERT INTO movies (title, year, imdb_url, reccomender, tags, content_type)
-  VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO movies (title, imdb_url, reccomender, tags, content_type)
+  VALUES ($1, $2, $3, $4, $5)
 RETURNING
-  movieid, title, year, imdb_url, reccomender, tags, content_type
+  movieid, title, imdb_url, reccomender, tags, content_type
 `
 
 type CreateMovieParams struct {
 	Title       string
-	Year        sql.NullInt32
 	ImdbUrl     sql.NullString
 	Reccomender sql.NullString
 	Tags        pqtype.NullRawMessage
@@ -29,7 +28,6 @@ type CreateMovieParams struct {
 func (q *Queries) CreateMovie(ctx context.Context, arg CreateMovieParams) (Movie, error) {
 	row := q.db.QueryRowContext(ctx, createMovie,
 		arg.Title,
-		arg.Year,
 		arg.ImdbUrl,
 		arg.Reccomender,
 		arg.Tags,
@@ -39,7 +37,6 @@ func (q *Queries) CreateMovie(ctx context.Context, arg CreateMovieParams) (Movie
 	err := row.Scan(
 		&i.Movieid,
 		&i.Title,
-		&i.Year,
 		&i.ImdbUrl,
 		&i.Reccomender,
 		&i.Tags,
@@ -50,7 +47,7 @@ func (q *Queries) CreateMovie(ctx context.Context, arg CreateMovieParams) (Movie
 
 const getMovie = `-- name: GetMovie :one
 SELECT
-  movieid, title, year, imdb_url, reccomender, tags, content_type
+  movieid, title, imdb_url, reccomender, tags, content_type
 FROM
   movies
 WHERE
@@ -64,7 +61,6 @@ func (q *Queries) GetMovie(ctx context.Context, movieid int32) (Movie, error) {
 	err := row.Scan(
 		&i.Movieid,
 		&i.Title,
-		&i.Year,
 		&i.ImdbUrl,
 		&i.Reccomender,
 		&i.Tags,
@@ -75,7 +71,7 @@ func (q *Queries) GetMovie(ctx context.Context, movieid int32) (Movie, error) {
 
 const listMovies = `-- name: ListMovies :many
 SELECT
-  movieid, title, year, imdb_url, reccomender, tags, content_type
+  movieid, title, imdb_url, reccomender, tags, content_type
 FROM
   movies
 `
@@ -92,7 +88,6 @@ func (q *Queries) ListMovies(ctx context.Context) ([]Movie, error) {
 		if err := rows.Scan(
 			&i.Movieid,
 			&i.Title,
-			&i.Year,
 			&i.ImdbUrl,
 			&i.Reccomender,
 			&i.Tags,

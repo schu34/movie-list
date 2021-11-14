@@ -37,7 +37,6 @@ const useSuggestion = () => {
     isRequestInProgress.current = true;
 
     const fetchPromise = debouncedFetch("/search/" + newSearch, {
-      // mode: "cors",
       method: "GET",
     });
     promise.current = fetchPromise
@@ -45,6 +44,7 @@ const useSuggestion = () => {
         return res.json();
       })
       .then((json) => {
+        //TODO: probably set a queryParam here.
         isRequestInProgress.current = false;
         setSuggestions(json);
         return;

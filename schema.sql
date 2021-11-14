@@ -1,10 +1,9 @@
 CREATE TABLE movies (
   movieId serial PRIMARY KEY,
   title text NOT NULL,
-  year int,
   imdb_url text,
   reccomender text,
   tags jsonb,
-	content_type text not null
+	content_type text NOT NULL
 );
 

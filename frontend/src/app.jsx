@@ -6,84 +6,131 @@ import "./styles.css";
 import useSuggestion from "./useSuggestion";
 const apiUrl = process.env.API_URL || "http://localhost:8080";
 
+const postForm = async (body) => {
+  const fetchRes = await fetch(`${apiUrl}/movie`, {
+    mode: "cors",
+    method: "POST",
+    body,
+  });
+
+  return await fetchRes.json();
+};
+
+const makeChangeListener = (stateSetter) => (e) => stateSetter(e.target.value);
+
 const App = () => {
   const [title, setTitle, suggestions] = useSuggestion();
   const [error, setError] = useState();
-  console.log("render");
-
-  const submitForm = async (e) => {
-    console.log("submit working");
-    e.preventDefault();
-
-    const finalURL = apiUrl + "/movie";
-    console.log(finalURL);
-    try {
-      const res = await fetch(finalURL, {
-        mode: "cors",
-        method: "POST",
-        body: JSON.stringify({ title }),
-      });
-      console.log(res);
-    } catch (error) {
-      console.log(error);
-      setError(error);
-    }
-  };
+  const [recommender, setRecommender] = useState("");
+  const [tags, setTags] = useState("");
+  const [isTv, setIsTv] = useState(false);
 
   return (
     <div className={"container"}>
-      <form onSubmit={submitForm}>
-        <div className={"row"}>
-          <div className="col-md-6 col-sm-12">
+      <div className={"row"}>
+        <div className="col-md-6 col-sm-12">
+          <div className="mb-3">
             <p>
               <label htmlFor="title" className="">
-                title
+                Title
               </label>
             </p>
-            <p>
-              <input
-                id="title"
-                autoComplete="false"
-                tabIndex="0"
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="form-control"
-              />
-            </p>
-            <input type="submit" value="submit" />
+            <input
+              id="title"
+              autoComplete="false"
+              tabIndex="0"
+              type="text"
+              value={title}
+              onChange={makeChangeListener(setTitle)}
+              className="form-control"
+            />
           </div>
-          <div className="col-md-6 col-sm-12">
-            {suggestions.results.length ? (
-              suggestions.results.map((sug) => {
-                return <SuggestionResult {...sug} />;
-              })
-            ) : (
-              <div className={"text-danger"}>{error}</div>
-            )}
+          <div className="mb-3">
+            <p>
+              <label htmlFor="recommender" className="">
+                Recommender
+              </label>
+            </p>
+            <input
+              id="recommender"
+              type="text"
+              tabIndex="1"
+              value={recommender}
+              autoComplete="false"
+              onChange={makeChangeListener(setRecommender)}
+              className="form-control"
+            />
+          </div>
+          <div className="mb-3">
+            <p>
+              <label htmlFor="tags" className="">
+                Tags
+              </label>
+            </p>
+            <input
+              id="tags"
+              type="text"
+              tabIndex="1"
+              value={tags}
+              autoComplete="false"
+              onChange={makeChangeListener(setTags)}
+              className="form-control"
+            />
+          </div>
+          <div className="mb-3">
+            <input
+              id="tags"
+              type="checkbox"
+              tabIndex="1"
+              value={isTv}
+              autoComplete="false"
+              onChange={makeChangeListener(setIsTv)}
+              className="form-check-input"
+            />
+            <label htmlFor="tags" className="">
+              {" "}
+              Tv show?
+            </label>
           </div>
         </div>
-      </form>
+        <div className="col-md-6 col-sm-12">
+          {suggestions?.results?.length ? (
+            suggestions.results.map((sug) => {
+              const onAdd = () => {
+                postForm({
+                  ...sug,
+                  recommender,
+                  tags: tags.split(" "),
+                  contentType: isTv ? "tv_show" : "movie",
+                });
+              };
 
-      {/* {JSON.stringify(suggestions, null, 2)} */}
+              return <SuggestionResult {...sug} onAdd={onAdd} />;
+            })
+          ) : (
+            <div className={"text-danger"}>{error}</div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
 
-const SuggestionResult = ({ image, title, description, id }) => {
+const SuggestionResult = ({ image, title, description, id, onAdd }) => {
   return (
-    <a href={"https://imdb.com/title/" + id}>
-      <div className="row">
-        <div className="col-2">
-          <img src={image}></img>
-        </div>
-        <div className="col-10">
+    <div className="row">
+      <div className="col-2">
+        <img src={image}></img>
+      </div>
+      <div className="col-10">
+        <a href={"https://imdb.com/title/" + id}>
           <p>
             {title}: {description}
           </p>
-        </div>
+        </a>
+        <button onClick={onAdd}> add </button>
       </div>
-    </a>
+    </div>
   );
 };
 
