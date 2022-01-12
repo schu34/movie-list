@@ -10,7 +10,7 @@ const postForm = async (body) => {
   const fetchRes = await fetch(`${apiUrl}/movie`, {
     mode: "cors",
     method: "POST",
-    body,
+    body: JSON.stringify(body),
   });
 
   return await fetchRes.json();
@@ -21,13 +21,45 @@ const makeChangeListener = (stateSetter) => (e) => stateSetter(e.target.value);
 const App = () => {
   const [title, setTitle, suggestions] = useSuggestion();
   const [error, setError] = useState();
+  const [postResult, setPostResult] = useState();
   const [recommender, setRecommender] = useState("");
   const [tags, setTags] = useState("");
   const [isTv, setIsTv] = useState(false);
 
+  const makeAddFunction = (suggestion) => async () => {
+    try {
+      const result = await postForm({
+        Id: suggestion.id,
+        Title: suggestion.title,
+        Recommender: recommender,
+        Tags: tags.split(" "),
+        ContentType: isTv ? "tv_show" : "movie",
+      });
+
+      console.log("result", result);
+      setPostResult("success");
+    } catch (e) {
+      setError("failed to add to list: " + e.message);
+    }
+  };
+
   return (
     <div className={"container"}>
-      <div className={"row"}>
+      {error && (
+        <div className="row">
+          <div className="col-md-12">
+            <div className={"text-danger"}>{error}</div>
+          </div>
+        </div>
+      )}
+      {postResult && (
+        <div className="row">
+          <div className="col-md-12">
+            <div className={"text-success"}>{postResult}</div>
+          </div>
+        </div>
+      )}
+      <div className="row">
         <div className="col-md-6 col-sm-12">
           <div className="mb-3">
             <p>
@@ -95,18 +127,12 @@ const App = () => {
         </div>
         <div className="col-md-6 col-sm-12">
           {suggestions?.results?.length ? (
-            suggestions.results.map((sug) => {
-              const onAdd = () => {
-                postForm({
-                  ...sug,
-                  recommender,
-                  tags: tags.split(" "),
-                  contentType: isTv ? "tv_show" : "movie",
-                });
-              };
-
-              return <SuggestionResult {...sug} onAdd={onAdd} />;
-            })
+            suggestions.results.map((suggestion) => (
+              <SuggestionResult
+                {...suggestion}
+                onAdd={makeAddFunction(suggestion)}
+              />
+            ))
           ) : (
             <div className={"text-danger"}>{error}</div>
           )}

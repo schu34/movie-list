@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"net/http"
 	"os"
 	"strconv"
 
@@ -19,8 +20,9 @@ import (
 type Movie struct {
 	Title       string   `json:"Title"`
 	Reccomender string   `json:"Reccomender"`
-	ImdbUrl     string   `json:"ImdbUrl"`
+	Id          string   `json:"Id"`
 	Tags        []string `json:"Tags"`
+	ContentType string   `json:"ContentType"`
 }
 
 // var sample = Movie{Title: "star wars", Year: 1979, Reccomender: "dad", ImdbUrl: "test", Tags: []string{"sci-fi"}}
@@ -29,7 +31,7 @@ func main() {
 	dburl, found := os.LookupEnv("DATABASE_URL")
 
 	if !found {
-		dburl = "user=postgres dbname=movie-list sslmode=disable"
+		dburl = "user=matthew dbname=movie-list sslmode=disable"
 	}
 
 	var dbp, err = sql.Open("postgres", dburl)
@@ -56,43 +58,42 @@ func main() {
 		movies, err := queries.ListMovies(c)
 
 		if err != nil {
-			panic(err)
+			c.IndentedJSON(http.StatusInternalServerError, err)
 		}
-		c.IndentedJSON(200, movies)
+		c.IndentedJSON(http.StatusOK, movies)
 	})
 
 	router.GET("/movie/:id", func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 
 		if err != nil {
-			panic(err)
+			c.AbortWithStatus(http.StatusBadRequest)
 		}
 
 		movie, err := queries.GetMovie(c, int32(id))
 
 		if err != nil {
-			panic(err)
+			c.IndentedJSON(http.StatusInternalServerError, err)
 		}
 
-		c.IndentedJSON(200, movie)
+		c.IndentedJSON(http.StatusOK, movie)
 	})
 
 	router.POST("/movie", func(c *gin.Context) {
 
-		result, err := queries.CreateMovie(c, db.CreateMovieParams{
-			Title:       c.PostForm("Title"),
-			Reccomender: getStringFromBody(c, "Reccomender"),
-			ImdbUrl:     getStringFromBody(c, "ImdbUrl"),
-			Tags:        getJSONFromBody(c, "Tags"),
-			ContentType: getStringFromBody(c, "ContentType").String,
-		})
+		var movie Movie
+
+		c.BindJSON(&movie)
+
+		result, err := queries.CreateMovie(c, makeMovieRecord(movie))
 
 		if err != nil {
-			c.AbortWithError(500, err)
+			println(err)
+			c.IndentedJSON(http.StatusInternalServerError, err)
 			return
 		}
 
-		c.IndentedJSON(200, result)
+		c.IndentedJSON(http.StatusOK, result)
 
 	})
 
@@ -100,17 +101,17 @@ func main() {
 		response, err := ImdbSearch(c.Param("search"))
 
 		if err != nil {
-			c.AbortWithError(500, err)
+			c.IndentedJSON(http.StatusInternalServerError, err)
 		}
 
-		c.IndentedJSON(200, response)
+		c.IndentedJSON(http.StatusOK, response)
 
 	})
 
 	count := 0
 	router.GET("/hello", func(c *gin.Context) {
 		count++
-		c.IndentedJSON(200, "world "+strconv.Itoa(count))
+		c.IndentedJSON(http.StatusOK, "world "+strconv.Itoa(count))
 	})
 
 	router.Run(":" + port)
@@ -124,4 +125,24 @@ func getStringFromBody(c *gin.Context, key string) sql.NullString {
 func getJSONFromBody(c *gin.Context, key string) pqtype.NullRawMessage {
 	value := json.RawMessage(c.PostForm("Tags"))
 	return pqtype.NullRawMessage{Valid: json.Valid((value)), RawMessage: value}
+}
+
+func makeMovieRecord(movie Movie) db.CreateMovieParams {
+
+	ImdbUrl := "https://www.imdb.com/title/" + movie.Id
+
+	tagsValue, err := json.Marshal(movie.Tags)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return db.CreateMovieParams{
+		Title:       movie.Title,
+		Reccomender: sql.NullString{Valid: true, String: movie.Reccomender},
+		ImdbUrl:     sql.NullString{Valid: true, String: ImdbUrl},
+		Tags:        pqtype.NullRawMessage{Valid: true, RawMessage: tagsValue},
+		ContentType: movie.ContentType,
+	}
+
 }
