@@ -1,10 +1,14 @@
 import React, { useState } from "react";
 import ReactDOM from "react-dom";
+import classNames from "classnames";
+
 import useSuggestion from "./useSuggestion";
+import useSuggestion from "./useSuggestion";
+import useMovies from "./useMovieList";
 
 import "./styles.css";
-import useSuggestion from "./useSuggestion";
-const apiUrl = process.env.API_URL || "http://localhost:8080";
+
+import { apiUrl } from "./constants.js";
 
 const postForm = async (body) => {
   const fetchRes = await fetch(`${apiUrl}/movie`, {
@@ -13,12 +17,72 @@ const postForm = async (body) => {
     body: JSON.stringify(body),
   });
 
+  console.log(fetchRes);
+  if (fetchRes.status !== 200) {
+    throw new Error(fetchRes.statusText);
+  }
+
   return await fetchRes.json();
 };
 
 const makeChangeListener = (stateSetter) => (e) => stateSetter(e.target.value);
 
 const App = () => {
+  const [currentTabIndex, setCurrentTab] = useState(0);
+  const tabs = [
+    { id: "Add New", component: AddTab },
+    { id: "display", component: DisplayTab },
+  ];
+
+  const CurrentTab = tabs[currentTabIndex].component;
+
+  return (
+    <div>
+      <ul className="nav nav-tabs">
+        {tabs.map(({ id }, i) => {
+          return (
+            <li className="nav-item">
+              <button
+                className={classNames({
+                  "nav-link": true,
+                  active: i === currentTabIndex,
+                })}
+                aria-current="page"
+                onClick={() => setCurrentTab(i)}
+              >
+                {id}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      <CurrentTab />
+    </div>
+  );
+};
+
+const DisplayTab = () => {
+  const movies = useMovies();
+  return movies?.map((movie) => <Movie {...movie} />) || null;
+};
+const Movie = ({ Image, Title, Description, Id }) => {
+  return (
+    <div className="row">
+      <div className="col-2">
+        <img src={Image}></img>
+      </div>
+      <div className="col-10">
+        <a href={"https://imdb.com/title/" + Id}>
+          <p>
+            {Title}: {Description}
+          </p>
+        </a>
+      </div>
+    </div>
+  );
+};
+
+const AddTab = () => {
   const [title, setTitle, suggestions] = useSuggestion();
   const [error, setError] = useState();
   const [postResult, setPostResult] = useState();
@@ -31,6 +95,8 @@ const App = () => {
       const result = await postForm({
         Id: suggestion.id,
         Title: suggestion.title,
+        Description: suggestion.description,
+        Image: suggestion.image,
         Recommender: recommender,
         Tags: tags.split(" "),
         ContentType: isTv ? "tv_show" : "movie",

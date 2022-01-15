@@ -11,34 +11,39 @@ import (
 )
 
 const createMovie = `-- name: CreateMovie :one
-INSERT INTO movies (title, imdb_url, reccomender, tags, content_type)
-  VALUES ($1, $2, $3, $4, $5)
+INSERT INTO movies (movieId, title, reccomender, tags, content_type, image, description)
+  VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING
-  movieid, title, imdb_url, reccomender, tags, content_type
+  movieid, title, description, reccomender, image, tags, content_type
 `
 
 type CreateMovieParams struct {
+	Movieid     string
 	Title       string
-	ImdbUrl     sql.NullString
 	Reccomender sql.NullString
 	Tags        pqtype.NullRawMessage
 	ContentType string
+	Image       string
+	Description string
 }
 
 func (q *Queries) CreateMovie(ctx context.Context, arg CreateMovieParams) (Movie, error) {
 	row := q.db.QueryRowContext(ctx, createMovie,
+		arg.Movieid,
 		arg.Title,
-		arg.ImdbUrl,
 		arg.Reccomender,
 		arg.Tags,
 		arg.ContentType,
+		arg.Image,
+		arg.Description,
 	)
 	var i Movie
 	err := row.Scan(
 		&i.Movieid,
 		&i.Title,
-		&i.ImdbUrl,
+		&i.Description,
 		&i.Reccomender,
+		&i.Image,
 		&i.Tags,
 		&i.ContentType,
 	)
@@ -47,7 +52,7 @@ func (q *Queries) CreateMovie(ctx context.Context, arg CreateMovieParams) (Movie
 
 const getMovie = `-- name: GetMovie :one
 SELECT
-  movieid, title, imdb_url, reccomender, tags, content_type
+  movieid, title, description, reccomender, image, tags, content_type
 FROM
   movies
 WHERE
@@ -55,14 +60,15 @@ WHERE
 LIMIT 1
 `
 
-func (q *Queries) GetMovie(ctx context.Context, movieid int32) (Movie, error) {
+func (q *Queries) GetMovie(ctx context.Context, movieid string) (Movie, error) {
 	row := q.db.QueryRowContext(ctx, getMovie, movieid)
 	var i Movie
 	err := row.Scan(
 		&i.Movieid,
 		&i.Title,
-		&i.ImdbUrl,
+		&i.Description,
 		&i.Reccomender,
+		&i.Image,
 		&i.Tags,
 		&i.ContentType,
 	)
@@ -71,7 +77,7 @@ func (q *Queries) GetMovie(ctx context.Context, movieid int32) (Movie, error) {
 
 const listMovies = `-- name: ListMovies :many
 SELECT
-  movieid, title, imdb_url, reccomender, tags, content_type
+  movieid, title, description, reccomender, image, tags, content_type
 FROM
   movies
 `
@@ -88,8 +94,9 @@ func (q *Queries) ListMovies(ctx context.Context) ([]Movie, error) {
 		if err := rows.Scan(
 			&i.Movieid,
 			&i.Title,
-			&i.ImdbUrl,
+			&i.Description,
 			&i.Reccomender,
+			&i.Image,
 			&i.Tags,
 			&i.ContentType,
 		); err != nil {

@@ -17,14 +17,6 @@ import (
 
 // var dbUrl = "postgres://postgres:@localhost:5432/movie-list?sslmode=disable"
 
-type Movie struct {
-	Title       string   `json:"Title"`
-	Reccomender string   `json:"Reccomender"`
-	Id          string   `json:"Id"`
-	Tags        []string `json:"Tags"`
-	ContentType string   `json:"ContentType"`
-}
-
 // var sample = Movie{Title: "star wars", Year: 1979, Reccomender: "dad", ImdbUrl: "test", Tags: []string{"sci-fi"}}
 
 func main() {
@@ -60,17 +52,16 @@ func main() {
 		if err != nil {
 			c.IndentedJSON(http.StatusInternalServerError, err)
 		}
-		c.IndentedJSON(http.StatusOK, movies)
+		c.IndentedJSON(http.StatusOK, MapMoviesFromDbRecords(movies))
 	})
 
 	router.GET("/movie/:id", func(c *gin.Context) {
-		id, err := strconv.Atoi(c.Param("id"))
 
 		if err != nil {
 			c.AbortWithStatus(http.StatusBadRequest)
 		}
 
-		movie, err := queries.GetMovie(c, int32(id))
+		movie, err := queries.GetMovie(c, c.Param("id"))
 
 		if err != nil {
 			c.IndentedJSON(http.StatusInternalServerError, err)
@@ -85,10 +76,13 @@ func main() {
 
 		c.BindJSON(&movie)
 
-		result, err := queries.CreateMovie(c, makeMovieRecord(movie))
+		movieRec := MakeMovieRecord(movie)
+		println(movieRec.Movieid)
+
+		result, err := queries.CreateMovie(c, movieRec)
 
 		if err != nil {
-			println(err)
+			println(err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, err)
 			return
 		}
@@ -125,24 +119,4 @@ func getStringFromBody(c *gin.Context, key string) sql.NullString {
 func getJSONFromBody(c *gin.Context, key string) pqtype.NullRawMessage {
 	value := json.RawMessage(c.PostForm("Tags"))
 	return pqtype.NullRawMessage{Valid: json.Valid((value)), RawMessage: value}
-}
-
-func makeMovieRecord(movie Movie) db.CreateMovieParams {
-
-	ImdbUrl := "https://www.imdb.com/title/" + movie.Id
-
-	tagsValue, err := json.Marshal(movie.Tags)
-
-	if err != nil {
-		panic(err)
-	}
-
-	return db.CreateMovieParams{
-		Title:       movie.Title,
-		Reccomender: sql.NullString{Valid: true, String: movie.Reccomender},
-		ImdbUrl:     sql.NullString{Valid: true, String: ImdbUrl},
-		Tags:        pqtype.NullRawMessage{Valid: true, RawMessage: tagsValue},
-		ContentType: movie.ContentType,
-	}
-
 }

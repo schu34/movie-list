@@ -9,10 +9,11 @@ import (
 )
 
 type Movie struct {
-	Movieid     int32
+	Movieid     string
 	Title       string
-	ImdbUrl     sql.NullString
+	Description string
 	Reccomender sql.NullString
+	Image       string
 	Tags        pqtype.NullRawMessage
 	ContentType string
 }
